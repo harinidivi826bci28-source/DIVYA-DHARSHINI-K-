@@ -1,0 +1,9 @@
+# Update your code below this line
+mixed_string = 'Am I DreAmIng'
+mixed_string = 'Am I DreAmIng'
+
+# Convert to lowercase
+print(mixed_string.lower())
+
+# Convert to uppercase
+print(mixed_string.upper())
