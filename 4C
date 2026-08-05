@@ -1,0 +1,29 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+int main() {
+    // Allocate memory for a sentence up to 1000 characters long
+    char *s = malloc(1002 * sizeof(char));
+    if (s == NULL) return 1;
+    
+    // Read the entire line of input, including spaces
+    // [^\n] tells scanf to read everything until a newline character is hit
+    if (scanf("%1001[^\n]", s) != 1) {
+        free(s);
+        return 0; // Return early if input is empty
+    }
+    
+    // Iterate through the string character by character
+    for (int i = 0; s[i] != '\0'; i++) {
+        if (s[i] == ' ') {
+            printf("\n"); // Print a newline whenever a space is encountered
+        } else {
+            printf("%c", s[i]); // Print the character
+        }
+    }
+    printf("\n"); // Ensure the last word ends with a newline
+    
+    free(s);
+    return 0;
+}
