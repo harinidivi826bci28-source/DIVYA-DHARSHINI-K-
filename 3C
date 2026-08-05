@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+int main() {
+    // Allocate memory for a string up to 1000 characters long
+    char *s = malloc(1002 * sizeof(char));
+    if (s == NULL) return 1;
+    
+    // Read the entire line of input
+    if (scanf("%1001s", s) != 1) {
+        free(s);
+        return 1;
+    }
+    
+    // Initialize a frequency array for digits 0-9 with zeros
+    int frequency[10] = {0};
+    
+    // Iterate through the string character by character
+    for (int i = 0; s[i] != '\0'; i++) {
+        // Check if the current character is a numeric digit
+        if (s[i] >= '0' && s[i] <= '9') {
+            // Subtract character '0' to convert char format to integer index
+            frequency[s[i] - '0']++;
+        }
+    }
+    
+    // Print the frequencies separated by spaces
+    for (int i = 0; i < 10; i++) {
+        printf("%d ", frequency[i]);
+    }
+    printf("\n");
+    
+    free(s);
+    return 0;
+}
