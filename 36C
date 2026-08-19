@@ -1,0 +1,65 @@
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     struct ListNode *next;
+ * };
+ */
+
+// Helper function to merge two sorted linked lists
+struct ListNode* merge(struct ListNode* list1, struct ListNode* list2) {
+    struct ListNode dummy;
+    struct ListNode* tail = &dummy;
+    dummy.next = NULL;
+    
+    while (list1 != NULL && list2 != NULL) {
+        if (list1->val <= list2->val) {
+            tail->next = list1;
+            list1 = list1->next;
+        } else {
+            tail->next = list2;
+            list2 = list2->next;
+        }
+        tail = tail->next;
+    }
+    
+    // Attach the remaining nodes of whichever list is not empty
+    if (list1 != NULL) {
+        tail->next = list1;
+    } else {
+        tail->next = list2;
+    }
+    
+    return dummy.next;
+}
+
+// Main function to sort the list using Merge Sort
+struct ListNode* sortList(struct ListNode* head) {
+    // Base case: if list is empty or has only one element, it's already sorted
+    if (head == NULL || head->next == NULL) {
+        return head;
+    }
+    
+    // Step 1: Split the list into two halves using slow and fast pointers
+    struct ListNode* prev = NULL;
+    struct ListNode* slow = head;
+    struct ListNode* fast = head;
+    
+    while (fast != NULL && fast->next != NULL) {
+        prev = slow;
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    
+    // Disconnect the first half from the second half
+    if (prev != NULL) {
+        prev->next = NULL;
+    }
+    
+    // Step 2: Recursively sort each half
+    struct ListNode* leftHalf = sortList(head);
+    struct ListNode* rightHalf = sortList(slow);
+    
+    // Step 3: Merge the two sorted halves together
+    return merge(leftHalf, rightHalf);
+}
