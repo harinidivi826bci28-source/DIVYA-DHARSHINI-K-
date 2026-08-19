@@ -1,0 +1,40 @@
+#include <stdlib.h>
+int** mergeSimilarItems(int** items1, int items1Size, int* items1ColSize, 
+                        int** items2, int items2Size, int* items2ColSize, 
+                        int* returnSize, int** returnColumnSizes) {
+
+    int weights[1001] = {0};
+    int uniqueValuesCount = 0;
+    for (int i = 0; i < items1Size; i++) {
+        int value = items1[i][0];
+        int weight = items1[i][1];
+        if (weights[value] == 0) {
+            uniqueValuesCount++;
+        }
+        weights[value] += weight;
+    }
+    for (int i = 0; i < items2Size; i++) {
+        int value = items2[i][0];
+        int weight = items2[i][1];
+        if (weights[value] == 0) {
+            uniqueValuesCount++;
+        }
+        weights[value] += weight;
+    }
+    int** ret = (int**)malloc(uniqueValuesCount * sizeof(int*));
+    *returnColumnSizes = (int*)malloc(uniqueValuesCount * sizeof(int));
+    
+    int index = 0;
+    for (int v = 1; v <= 1000; v++) {
+        if (weights[v] > 0) {
+            ret[index] = (int*)malloc(2 * sizeof(int));
+            ret[index][0] = v;         
+            ret[index][1] = weights[v];  
+            (*returnColumnSizes)[index] = 2;
+            index++;
+        }
+    }
+    
+    *returnSize = uniqueValuesCount;
+    return ret;
+}
