@@ -1,0 +1,66 @@
+#include <stdlib.h>
+
+#define HASH_SIZE 2048
+
+typedef struct HashNode {
+    int key;
+    int val;
+    struct HashNode* next;
+} HashNode;
+
+// Helper to insert a key-value pair into the hash table
+void insert(HashNode** table, int key, int val) {
+    int hashIndex = abs(key) % HASH_SIZE;
+    HashNode* newNode = (HashNode*)malloc(sizeof(HashNode));
+    newNode->key = key;
+    newNode->val = val;
+    newNode->next = table[hashIndex];
+    table[hashIndex] = newNode;
+}
+
+// Helper to find a value by key in the hash table
+int find(HashNode** table, int key) {
+    int hashIndex = abs(key) % HASH_SIZE;
+    HashNode* curr = table[hashIndex];
+    while (curr) {
+        if (curr->key == key) {
+            return curr->val;
+        }
+        curr = curr->next;
+    }
+    return -1; // Not found
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
+    HashNode* table[HASH_SIZE] = {NULL};
+    int* result = (int*)malloc(2 * sizeof(int));
+    *returnSize = 2;
+
+    for (int i = 0; i < numsSize; i++) {
+        int complement = target - nums[i];
+        int complementIdx = find(table, complement);
+
+        if (complementIdx != -1) {
+            result[0] = complementIdx;
+            result[1] = i;
+            
+            // Clean up allocated memory before returning
+            for (int j = 0; j < HASH_SIZE; j++) {
+                HashNode* curr = table[j];
+                while (curr) {
+                    HashNode* temp = curr;
+                    curr = curr->next;
+                    free(temp);
+                }
+            }
+            return result;
+        }
+        insert(table, nums[i], i);
+    }
+
+    *returnSize = 0;
+    return NULL;
+}
