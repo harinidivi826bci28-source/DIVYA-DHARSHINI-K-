@@ -1,0 +1,177 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_STRING_LENGTH 6
+
+struct package {
+    char* id;
+    int weight;
+};
+
+typedef struct package package;
+
+struct post_office {
+    int min_weight;
+    int max_weight;
+    package* packages;
+    int packages_count;
+};
+
+typedef struct post_office post_office;
+
+struct town {
+    char* name;
+    post_office* offices;
+    int offices_count;
+};
+
+typedef struct town town;
+
+// Prints all acceptable packages currently in a given post office
+void print_all_packages(town t) {
+    printf("%s:\n", t.name);
+    for (int i = 0; i < t.offices_count; i++) {
+        printf("\t%d:\n", i);
+        for (int j = 0; j < t.offices[i].packages_count; j++) {
+            printf("\t\t%s\n", t.offices[i].packages[j].id);
+        }
+    }
+}
+
+// Moves acceptable packages from a source post office to a target post office
+void send_all_acceptable_packages(town* source, int source_office_index, town* target, int target_office_index) {
+    post_office* src_office = &(source->offices[source_office_index]);
+    post_office* tgt_office = &(target->offices[target_office_index]);
+    
+    // Arrays to temporarily separate kept and moved packages
+    package* kept_pkgs = malloc(sizeof(package) * src_office->packages_count);
+    int kept_count = 0;
+    
+    for (int i = 0; i < src_office->packages_count; i++) {
+        package p = src_office->packages[i];
+        if (p.weight >= tgt_office->min_weight && p.weight <= tgt_office->max_weight) {
+            // Append to target office package array
+            tgt_office->packages = realloc(tgt_office->packages, sizeof(package) * (tgt_office->packages_count + 1));
+            tgt_office->packages[tgt_office->packages_count] = p;
+            tgt_office->packages_count++;
+        } else {
+            // Keep in source office
+            kept_pkgs[kept_count++] = p;
+        }
+    }
+    
+    // Update source office packages array
+    free(src_office->packages);
+    if (kept_count > 0) {
+        src_office->packages = malloc(sizeof(package) * kept_count);
+        for (int i = 0; i < kept_count; i++) {
+            src_office->packages[i] = kept_pkgs[i];
+        }
+    } else {
+        src_office->packages = NULL;
+    }
+    src_office->packages_count = kept_count;
+    
+    free(kept_pkgs);
+}
+
+// Finds the town with the most total packages across all its post offices
+town town_with_most_packages(town* towns, int towns_count) {
+    int max_packages = -1;
+    int target_index = 0;
+    
+    for (int i = 0; i < towns_count; i++) {
+        int current_town_pkgs = 0;
+        for (int j = 0; j < towns[i].offices_count; j++) {
+            current_town_pkgs += towns[i].offices[j].packages_count;
+        }
+        if (current_town_pkgs > max_packages) {
+            max_packages = current_town_pkgs;
+            target_index = i;
+        }
+    }
+    return towns[target_index];
+}
+
+// Finds a town object given its unique string name
+town* find_town(town* towns, int towns_count, char* name) {
+    for (int i = 0; i < towns_count; i++) {
+        if (strcmp(towns[i].name, name) == 0) {
+            return &towns[i];
+        }
+    }
+    return NULL;
+}
+
+int main() {
+    int towns_count;
+    if (scanf("%d", &towns_count) != 1) return 0;
+    town* towns = malloc(sizeof(town) * towns_count);
+    
+    for (int i = 0; i < towns_count; i++) {
+        towns[i].name = malloc(sizeof(char) * MAX_STRING_LENGTH);
+        scanf("%s", towns[i].name);
+        scanf("%d", &towns[i].offices_count);
+        towns[i].offices = malloc(sizeof(post_office) * towns[i].offices_count);
+        
+        for (int j = 0; j < towns[i].offices_count; j++) {
+            scanf("%d %d %d", &towns[i].offices[j].packages_count, 
+                              &towns[i].offices[j].min_weight, 
+                              &towns[i].offices[j].max_weight);
+            
+            if (towns[i].offices[j].packages_count > 0) {
+                towns[i].offices[j].packages = malloc(sizeof(package) * towns[i].offices[j].packages_count);
+                for (int k = 0; k < towns[i].offices[j].packages_count; k++) {
+                    towns[i].offices[j].packages[k].id = malloc(sizeof(char) * MAX_STRING_LENGTH);
+                    scanf("%s", towns[i].offices[j].packages[k].id);
+                    scanf("%d", &towns[i].offices[j].packages[k].weight);
+                }
+            } else {
+                towns[i].offices[j].packages = NULL;
+            }
+        }
+    }
+    
+    int queries;
+    if (scanf("%d", &queries) != 1) return 0;
+    
+    while (queries--) {
+        int type;
+        scanf("%d", &type);
+        if (type == 1) {
+            char name[MAX_STRING_LENGTH];
+            scanf("%s", name);
+            town* t = find_town(towns, towns_count, name);
+            if (t != NULL) {
+                print_all_packages(*t);
+            }
+        } else if (type == 2) {
+            char source_name[MAX_STRING_LENGTH];
+            char target_name[MAX_STRING_LENGTH];
+            int source_index, target_index;
+            scanf("%s %d %s %d", source_name, &source_index, target_name, &target_index);
+            town* source = find_town(towns, towns_count, source_name);
+            town* target = find_town(towns, towns_count, target_name);
+            send_all_acceptable_packages(source, source_index, target, target_index);
+        } else if (type == 3) {
+            town t = town_with_most_packages(towns, towns_count);
+            printf("Town with the most number of packages is %s\n", t.name);
+        }
+    }
+    
+    // Memory Clean up
+    for (int i = 0; i < towns_count; i++) {
+        for (int j = 0; j < towns[i].offices_count; j++) {
+            for (int k = 0; k < towns[i].offices[j].packages_count; k++) {
+                free(towns[i].offices[j].packages[k].id);
+            }
+            free(towns[i].offices[j].packages);
+        }
+        free(towns[i].offices);
+        free(towns[i].name);
+    }
+    free(towns);
+    
+    return 0;
+}
